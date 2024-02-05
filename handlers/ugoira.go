@@ -67,12 +67,14 @@ func (h *Handler) convertUgoira(ctx context.Context, id string, format string) (
 	}
 
 	var builder strings.Builder
+	var lastFile string
 	builder.WriteString("ffconcat version 1.0\n")
 	totalMilli := 0
 	cropped := false
 	for frameNum, frame := range metadata.Body.Frames {
+		lastFile = filepath.Join(dir, frame.File)
 		builder.WriteString("file 'file:")
-		builder.WriteString(filepath.Join(dir, frame.File))
+		builder.WriteString(lastFile)
 		builder.WriteString("'\n")
 		builder.WriteString("duration ")
 		builder.WriteString(strconv.FormatFloat(float64(frame.Delay)/1000, 'f', 3, 64))
@@ -85,6 +87,9 @@ func (h *Handler) convertUgoira(ctx context.Context, id string, format string) (
 			break
 		}
 	}
+	builder.WriteString("file 'file:")
+	builder.WriteString(lastFile)
+	builder.WriteString("'\n")
 
 	ffmpegInput := strings.NewReader(builder.String())
 	filename := filepath.Join(dir, "output")

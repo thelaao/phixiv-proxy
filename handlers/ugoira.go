@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -46,12 +45,7 @@ func (h *Handler) convertUgoira(ctx context.Context, id string, format string) (
 	if err != nil {
 		return
 	}
-	defer body.Close()
-	zipRaw, err := io.ReadAll(body)
-	if err != nil {
-		return
-	}
-	zipReader, err := zip.NewReader(bytes.NewReader(zipRaw), int64(len(zipRaw)))
+	zipReader, err := zip.NewReader(bytes.NewReader(body), int64(len(body)))
 	if err != nil {
 		return
 	}
@@ -118,7 +112,7 @@ func (h *Handler) convertUgoira(ctx context.Context, id string, format string) (
 		}
 		filename = newFilename
 	}
-	elapsed := time.Now().Sub(start).Milliseconds()
+	elapsed := time.Since(start).Milliseconds()
 	log.Printf("ffmpeg time %d ms\n", elapsed)
 
 	output, err = os.ReadFile(filename)

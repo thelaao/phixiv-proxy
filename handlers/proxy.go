@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"io"
 	"net/http"
 	"strings"
 
@@ -29,8 +28,7 @@ func (h *Handler) ProxyHandler() http.HandlerFunc {
 			h.reportError(w, err)
 			return
 		}
-		defer body.Close()
 		w.Header().Add("Content-Type", contentType)
-		io.Copy(w, body)
+		w.Write(body)
 	}
 }

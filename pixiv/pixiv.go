@@ -43,15 +43,15 @@ func (client *PixivClient) CallApi(ctx context.Context, url string, output any) 
 	if err != nil {
 		return err
 	}
+	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
 		return &PixivRequestError{StatusCode: res.StatusCode}
 	}
-	defer res.Body.Close()
 	err = json.NewDecoder(res.Body).Decode(output)
 	return err
 }
 
-func (client *PixivClient) Download(ctx context.Context, url string) (contentType string, body io.ReadCloser, err error) {
+func (client *PixivClient) Download(ctx context.Context, url string) (contentType string, body []byte, err error) {
 	req, _ := http.NewRequestWithContext(ctx, "GET", url, nil)
 	req.Header.Set("User-Agent", client.UserAgent)
 	req.Header.Set("Referer", "https://www.pixiv.net/")
@@ -59,11 +59,12 @@ func (client *PixivClient) Download(ctx context.Context, url string) (contentTyp
 	if err != nil {
 		return
 	}
+	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
 		err = &PixivRequestError{StatusCode: res.StatusCode}
 		return
 	}
 	contentType = res.Header.Get("Content-Type")
-	body = res.Body
+	body, err = io.ReadAll(res.Body)
 	return
 }

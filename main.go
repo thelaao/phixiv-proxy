@@ -16,7 +16,7 @@ import (
 func main() {
 	client := pixiv.NewPixivClient(&http.Client{}, os.Getenv("USER_AGENT"), os.Getenv("PIXIV_COOKIE"))
 	cache := utils.NewCache(os.Getenv("REDIS_URL"))
-	h := handlers.NewHandler(client, os.Getenv("ALLOWED_PREFIXES"), parseEnvInt("UGOIRA_DURATION"), parseEnvInt("UGOIRA_MIN_DURATION"), parseEnvInt("UGOIRA_FRAMES"))
+	h := handlers.NewHandler(client, os.Getenv("ALLOWED_PREFIXES"), parseEnvInt("UGOIRA_DURATION"), parseEnvInt("UGOIRA_MIN_DURATION"), parseEnvInt("UGOIRA_FRAMES"), os.Getenv("PXIMG_BASE"))
 
 	r := chi.NewRouter()
 	r.Use(middleware.Recoverer)
@@ -25,6 +25,7 @@ func main() {
 
 	r.Get(`/i/ugoira/{id:\d+}.{format:[a-z0-9]+}`, h.UgoiraHandler())
 	r.Get(`/i/*`, h.ProxyHandler())
+	r.Get(`/health`, h.HealthHandler())
 
 	log.Fatal(http.ListenAndServe(":3000", r))
 }

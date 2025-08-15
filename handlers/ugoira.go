@@ -41,7 +41,7 @@ func (h *Handler) convertUgoira(ctx context.Context, id string, format string) (
 		return
 	}
 
-	_, body, err := h.Client.Download(ctx, metadata.Body.Src)
+	_, body, err := h.Client.Download(ctx, metadata.Body.Src, false)
 	if err != nil {
 		return
 	}

@@ -51,7 +51,7 @@ func (client *PixivClient) CallApi(ctx context.Context, url string, output any) 
 	return err
 }
 
-func (client *PixivClient) Download(ctx context.Context, url string) (contentType string, body []byte, err error) {
+func (client *PixivClient) Download(ctx context.Context, url string, ignoreStatus bool) (contentType string, body []byte, err error) {
 	req, _ := http.NewRequestWithContext(ctx, "GET", url, nil)
 	req.Header.Set("User-Agent", client.UserAgent)
 	req.Header.Set("Referer", "https://www.pixiv.net/")
@@ -60,7 +60,7 @@ func (client *PixivClient) Download(ctx context.Context, url string) (contentTyp
 		return
 	}
 	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
+	if !ignoreStatus && res.StatusCode != http.StatusOK {
 		err = &PixivRequestError{StatusCode: res.StatusCode}
 		return
 	}

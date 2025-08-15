@@ -22,8 +22,8 @@ func (h *Handler) ProxyHandler() http.HandlerFunc {
 				return
 			}
 		}
-		url := "https://i.pximg.net/" + path
-		contentType, body, err := h.Client.Download(r.Context(), url)
+		url := h.PximgRoot + path
+		contentType, body, err := h.Client.Download(r.Context(), url, false)
 		if err != nil {
 			h.reportError(w, err)
 			return

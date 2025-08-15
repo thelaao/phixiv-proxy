@@ -13,15 +13,20 @@ type Handler struct {
 	UgoiraMaxDuration int
 	UgoiraMinDuration int
 	UgoiraMaxFrames   int
+	PximgRoot         string
 }
 
-func NewHandler(client *pixiv.PixivClient, allowedPrefixes string, ugoiraMaxDuration int, ugoiraMinDuration int, ugoiraMaxFrames int) *Handler {
+func NewHandler(client *pixiv.PixivClient, allowedPrefixes string, ugoiraMaxDuration int, ugoiraMinDuration int, ugoiraMaxFrames int, pximgRoot string) *Handler {
+	if len(pximgRoot) == 0 {
+		pximgRoot = "https://i.pximg.net/"
+	}
 	return &Handler{
 		Client:            client,
 		AllowedPrefixes:   strings.Split(allowedPrefixes, ","),
 		UgoiraMaxDuration: ugoiraMaxDuration,
 		UgoiraMinDuration: ugoiraMinDuration,
 		UgoiraMaxFrames:   ugoiraMaxFrames,
+		PximgRoot:         pximgRoot,
 	}
 }
 

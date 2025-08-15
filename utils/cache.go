@@ -68,6 +68,10 @@ func (cache *Cache) Middleware(next http.Handler) http.Handler {
 		return next
 	}
 	fn := func(w http.ResponseWriter, r *http.Request) {
+		if !strings.HasPrefix(r.URL.Path, "/i/") {
+			next.ServeHTTP(w, r)
+			return
+		}
 		cached := cache.Query(r.Context(), r.URL.Path)
 		if len(cached) > 0 {
 			resp, err := FromBytes(cached)

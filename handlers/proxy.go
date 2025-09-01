@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/thelaao/phixiv-proxy/utils"
 )
 
 func (h *Handler) ProxyHandler() http.HandlerFunc {
@@ -28,7 +30,11 @@ func (h *Handler) ProxyHandler() http.HandlerFunc {
 			h.reportError(w, err)
 			return
 		}
+		if strings.HasPrefix(path, "img-master/img/") && contentType == "image/jpeg" {
+			body = utils.ReencodeJPEG(body)
+		}
 		w.Header().Add("Content-Type", contentType)
+		w.Header().Add("Content-Length", strconv.Itoa(len(body)))
 		w.Write(body)
 	}
 }

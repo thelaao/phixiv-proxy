@@ -1,20 +1,22 @@
 # syntax=docker/dockerfile:1
 
-FROM golang:1.21 AS build
+FROM golang:1.21-alpine AS build
+
+RUN apk add --no-cache build-base libjpeg-turbo-dev
 
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o app_main .
+RUN go build -o app_main .
 
 FROM alpine:3.19 AS release
 
-RUN apk add --no-cache ffmpeg
+RUN apk add --no-cache ffmpeg libjpeg-turbo-dev
 
 WORKDIR /app
 COPY --from=build /app/app_main /app/app_main
 
 EXPOSE 3000
-ENTRYPOINT ["./app_main"]
+CMD ["./app_main"]

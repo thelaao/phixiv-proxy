@@ -24,7 +24,7 @@ func (h *Handler) ProxyHandler() http.HandlerFunc {
 				return
 			}
 		}
-		url := h.PximgRoot + path
+		url := h.PximgRoot.JoinPath(path).String()
 		contentType, body, err := h.Client.Download(r.Context(), url, false)
 		if err != nil {
 			h.reportError(w, err)

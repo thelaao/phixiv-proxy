@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/thelaao/phixiv-proxy/pixiv"
@@ -13,12 +15,16 @@ type Handler struct {
 	UgoiraMaxDuration int
 	UgoiraMinDuration int
 	UgoiraMaxFrames   int
-	PximgRoot         string
+	PximgRoot         *url.URL
 }
 
 func NewHandler(client *pixiv.PixivClient, allowedPrefixes string, ugoiraMaxDuration int, ugoiraMinDuration int, ugoiraMaxFrames int, pximgRoot string) *Handler {
 	if len(pximgRoot) == 0 {
 		pximgRoot = "https://i.pximg.net/"
+	}
+	pxImgRootUrl, err := url.Parse(pximgRoot)
+	if err != nil {
+		log.Fatalf("invalid url %s", pximgRoot)
 	}
 	return &Handler{
 		Client:            client,
@@ -26,7 +32,7 @@ func NewHandler(client *pixiv.PixivClient, allowedPrefixes string, ugoiraMaxDura
 		UgoiraMaxDuration: ugoiraMaxDuration,
 		UgoiraMinDuration: ugoiraMinDuration,
 		UgoiraMaxFrames:   ugoiraMaxFrames,
-		PximgRoot:         pximgRoot,
+		PximgRoot:         pxImgRootUrl,
 	}
 }
 

@@ -11,12 +11,12 @@ func (h *Handler) HealthHandler() http.HandlerFunc {
 		url := h.PximgRoot
 		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 		defer cancel()
-		_, _, err := h.Client.Download(ctx, url, true)
+		_, _, err := h.Client.Download(ctx, url.String(), true)
 		if err != nil {
 			h.reportError(w, err)
 			return
 		}
-		w.Header().Add("X-Pixiv-Target", url)
+		w.Header().Add("X-Pixiv-Target", url.String())
 		w.WriteHeader(http.StatusOK)
 	}
 }

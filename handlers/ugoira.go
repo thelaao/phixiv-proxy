@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -34,14 +35,19 @@ func (h *Handler) UgoiraHandler() http.HandlerFunc {
 }
 
 func (h *Handler) convertUgoira(ctx context.Context, id string, format string) (output []byte, contentType string, err error) {
-	url := fmt.Sprintf("https://www.pixiv.net/ajax/illust/%s/ugoira_meta", id)
+	ugoiraMetaUrl := fmt.Sprintf("https://www.pixiv.net/ajax/illust/%s/ugoira_meta", id)
 	metadata := &pixiv.UgoiraApiResponse{}
-	err = h.Client.CallApi(ctx, url, metadata)
+	err = h.Client.CallApi(ctx, ugoiraMetaUrl, metadata)
 	if err != nil {
 		return
 	}
 
-	_, body, err := h.Client.Download(ctx, metadata.Body.Src, false)
+	srcUrl, err := url.Parse(metadata.Body.Src)
+	if err != nil {
+		return
+	}
+	src := h.PximgRoot.JoinPath(srcUrl.Path).String()
+	_, body, err := h.Client.Download(ctx, src, false)
 	if err != nil {
 		return
 	}

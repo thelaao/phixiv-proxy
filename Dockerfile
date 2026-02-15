@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM golang:1.21-alpine AS build
+FROM golang:1.26-alpine AS build
 
 RUN apk add --no-cache build-base libjpeg-turbo-dev
 
@@ -11,7 +11,7 @@ RUN go mod download
 COPY . .
 RUN go build -o app_main .
 
-FROM alpine:3.19 AS release
+FROM alpine:3.23 AS release
 
 RUN apk add --no-cache ffmpeg libjpeg-turbo-dev
 

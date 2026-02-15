@@ -12,6 +12,8 @@ int recompressJpeg(unsigned char *jpegInput, unsigned long inputSize, unsigned c
 {
     int retcode = 0, width, height, jpegSubsamp, jpegColorspace;
     unsigned char *imageBuf = NULL;
+    unsigned char *iccBuf = NULL;
+    size_t iccSize = 0;
     tjhandle handle = NULL;
 
     *outBuf = NULL;
@@ -27,6 +29,11 @@ int recompressJpeg(unsigned char *jpegInput, unsigned long inputSize, unsigned c
         retcode = 1;
         goto cleanup;
     }
+    if (tj3GetICCProfile(handle, &iccBuf, &iccSize))
+    {
+        retcode = 1;
+        goto cleanup;
+    }
     if (!(imageBuf = malloc(width * height * tjPixelSize[PIXEL_FORMAT])))
     {
         retcode = 1;
@@ -35,6 +42,11 @@ int recompressJpeg(unsigned char *jpegInput, unsigned long inputSize, unsigned c
     if (tjDecompress2(handle, jpegInput, inputSize, imageBuf, width, 0, height, PIXEL_FORMAT, 0))
     {
         retcode = 1;
+        goto cleanup;
+    }
+    if (iccSize && tj3SetICCProfile(handle, iccBuf, iccSize))
+    {
+        retcode = 2;
         goto cleanup;
     }
     if (tjCompress2(handle, imageBuf, width, 0, height, PIXEL_FORMAT, outBuf, outLen, TJSAMP_444, jpegQual, 0))
@@ -46,15 +58,19 @@ int recompressJpeg(unsigned char *jpegInput, unsigned long inputSize, unsigned c
 cleanup:
     if (handle)
     {
-        tjDestroy(handle);
+        tj3Destroy(handle);
     }
     if (imageBuf)
     {
         free(imageBuf);
     }
+    if (iccBuf)
+    {
+        tj3Free(iccBuf);
+    }
     if (retcode && *outBuf)
     {
-        tjFree(*outBuf);
+        tj3Free(*outBuf);
         *outBuf = NULL;
     }
     return retcode;
@@ -64,7 +80,7 @@ void freeJpeg(unsigned char *buf)
 {
     if (buf)
     {
-        tjFree(buf);
+        tj3Free(buf);
     }
 }
 */

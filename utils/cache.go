@@ -92,6 +92,7 @@ func (resp *CachedResponse) CopyToWriter(w http.ResponseWriter, r *http.Request)
 	for k, v := range resp.Header {
 		w.Header().Set(k, strings.Join(v, ","))
 	}
+	w.Header().Set("Accept-Ranges", "bytes")
 	if resp.StatusCode != http.StatusOK {
 		w.WriteHeader(resp.StatusCode)
 		w.Write(resp.Body)

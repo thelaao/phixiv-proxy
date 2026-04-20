@@ -64,9 +64,6 @@ func (cache *Cache) Save(ctx context.Context, key string, value []byte, expires 
 }
 
 func (cache *Cache) Middleware(next http.Handler) http.Handler {
-	if !cache.Enabled {
-		return next
-	}
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		if !strings.HasPrefix(r.URL.Path, "/i/") {
 			next.ServeHTTP(w, r)
@@ -76,14 +73,14 @@ func (cache *Cache) Middleware(next http.Handler) http.Handler {
 		if len(cached) > 0 {
 			resp, err := FromBytes(cached)
 			if err == nil {
-				resp.CopyToWriter(w)
+				resp.CopyToWriter(w, r)
 				return
 			}
 		}
 		recorder := httptest.NewRecorder()
 		next.ServeHTTP(recorder, r)
 		resp := FromRecorder(recorder)
-		resp.CopyToWriter(w)
+		resp.CopyToWriter(w, r)
 		if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusNotFound {
 			resp.Save(r.Context(), cache, r.URL.Path, resp.StatusCode != http.StatusOK)
 		}
@@ -91,12 +88,17 @@ func (cache *Cache) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-func (resp *CachedResponse) CopyToWriter(w http.ResponseWriter) {
+func (resp *CachedResponse) CopyToWriter(w http.ResponseWriter, r *http.Request) {
 	for k, v := range resp.Header {
 		w.Header().Set(k, strings.Join(v, ","))
 	}
-	w.WriteHeader(resp.StatusCode)
-	w.Write(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		w.WriteHeader(resp.StatusCode)
+		w.Write(resp.Body)
+		return
+	}
+	content := bytes.NewReader(resp.Body)
+	http.ServeContent(w, r, "", time.Time{}, content)
 }
 
 func (resp *CachedResponse) Save(ctx context.Context, cache *Cache, path string, expires bool) {
